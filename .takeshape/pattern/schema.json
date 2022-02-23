@@ -45,6 +45,24 @@
       }
     }
   },
+  "indexedShapes": {
+    "Stripe_Product": {
+      "queries": {
+        "list": {
+          "name": "getStripeProducts",
+          "pagination": {
+            "type": "cursor",
+            "cursorPath": "data[(@.length-1)].id",
+            "itemsToIndexPath": "data",
+            "hasMorePath": "has_more",
+            "cursorArg": "starting_after",
+            "pageSizeArg": "limit"
+          }
+        }
+      },
+      "triggers": [{"type": "schedule", "query": "list", "interval": 1640}]
+    }
+  },
   "queries": {
     "getMyProfile": {
       "shape": "Profile",
@@ -211,44 +229,12 @@
       }
     },
     "getStripeProducts": {
-      "shape": {
-        "type": "array",
-        "items": { "@ref": "takeshape:local:StripeProductWithPrices" }
-      },
+      "shape": "Stripe_ListProductsResponse",
       "resolver": {
-        "results": {
-          "ops": [
-            {
-              "path": "$",
-              "mapping": [
-                [
-                  "expressionEval",
-                  {
-                    "expression": "map(compose(set('prices', placeholder, newObject()), get(placeholder, groupBy('product', $resolvers.prices.data)), get('id')), $resolvers.products.data)"
-                  }
-                ],
-                ["getMultiple", { "paths": ["$previousDirective", "$resolvers.products.data"] }],
-                ["zipAndMerge", {}]
-              ]
-            }
-          ]
-        },
-        "compose": [
-          {
-            "id": "products",
-            "name": "rest:get",
-            "service": "stripe",
-            "path": "/v1/products",
-            "searchParams": { "ops": [{ "path": "active", "value": "true" }] }
-          },
-          {
-            "id": "prices",
-            "name": "rest:get",
-            "service": "stripe",
-            "path": "/v1/prices",
-            "searchParams": { "ops": [{ "path": "active", "value": "true" }] }
-          }
-        ]
+        "name": "rest:get",
+        "service": "stripe",
+        "path": "/v1/products",
+        "searchParams": {"ops": [{"path": "active", "value": "true"}]}
       },
       "description": "Get Stripe products."
     },
@@ -687,17 +673,34 @@
     }
   },
   "shapes": {
-    "StripeProductWithPrices": {
-      "id": "StripeProductWithPrices",
-      "name": "StripeProductWithPrices",
-      "title": "StripeProductWithPrices",
+    "Stripe_Product": {
+      "id": "Stripe_Product",
+      "name": "Stripe_Product",
+      "title": "Stripe_Product",
       "schema": {
         "extends": [
-          { "@ref": "stripe:Product" },
+          {"@ref": "stripe:Product"},
           {
             "type": "object",
             "properties": {
-              "prices": { "type": "array", "items": { "@ref": "stripe:Price" } }
+              "prices": {
+                "type": "array",
+                "items": {"@ref": "stripe:Price"},
+                "@resolver": {
+                  "name": "rest:get",
+                  "service": "stripe",
+                  "path": "/v1/prices",
+                  "searchParams": {
+                    "ops": [
+                      {"path": "active", "value": "true"},
+                      {"path": "product", "mapping": "$source.id"}
+                    ]
+                  },
+                  "results": {
+                    "ops": [{"path": "$", "mapping": "$finalResolver.data"}]
+                  }
+                }
+              }
             }
           }
         ]

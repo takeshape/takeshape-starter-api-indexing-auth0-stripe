@@ -1,4 +1,15 @@
-# TakeShape Starter Auth0 + Stripe
+# TakeShape API Indexing Starter: Auth0 + Stripe
+
+TakeShape's API Indexing is not only useful as a fallback when external services go down, but also as a means of
+reducing overall requests to those services.
+
+In this starter, we will demonstrate how you can use TakeShape to combine what would be multiple Stripe API requests
+into a single TakeShape API request that doesn't query Stripe directly. In this starter's schema, API Indexing is
+configured to index Stripe products once every 72 hours, so none of the queries made from the frontend application will
+hit Stripe's servers.
+
+To learn more about API Indexing,
+[check out our guide on integrating it into your TakeShape projects](https://app.takeshape.io/docs/schema/api-indexing-guide/).
 
 The following is a guide to launch a Next.JS project that uses Auth0 for authentication, Stripe for purchasing
 subscription products, and TakeShape to store custom user profile information and generate an easy-to-use, user-scoped
@@ -66,6 +77,39 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with
 > keys. Please do not run the demo on a live account as you may incur unexpected charges from Stripe.
 
 1. Create a Stripe account.
+
+2. Take note of your Stripe API keys.
+
+   - Go to [Developers → API Keys](https://dashboard.stripe.com/test/apikeys)
+   - You are going to need your **publishable key** and your **secret key**.
+
+3. In TakeShape, set up your Stripe service.
+
+   - Select **Stripe** from the list of services on the `API` tab, in the `Patterns & Services` pane.
+   - Enter the Stripe secret key into the **Authentication → API Key** field.
+   - **Save** the service.
+
+4. Create your business model in Stripe.
+
+   - Go to [Products → Add Product](https://dashboard.stripe.com/test/products/create).
+   - Provide a name, description and image for your product.
+   - Use the **standard pricing** pricing model, provide a **recurring** or **one time** price, then **save** the
+     product. _Note: this starter supports a single active one time price, and multiple recurring prices per product._
+   - Do this a few time to add several products. You can experiment with multiple / different pricing options, but
+     please stick to the **Standard pricing** model.
+
+5. Give your Stripe account a name. This is required for Stripe Checkout.
+
+   - Go to [Settings → Account Details](https://dashboard.stripe.com/settings/account). In the Stripe UI, click the gear
+     icon in the upper right. Then in the lower section of the page, "Business Settings," you'll see the
+     `Account details` link.
+   - Enter an `Account name` where indicated.
+   - **Save** the settings.
+
+6. Navigate to your TakeShape project dashboard and select the API tab. Open your schema by selecting Schema and
+   selecting the JSON tab.
+
+<img width="991" alt="The API tab." src="./images/api-tab.png">
 
 2. Take note of your Stripe API keys.
 
